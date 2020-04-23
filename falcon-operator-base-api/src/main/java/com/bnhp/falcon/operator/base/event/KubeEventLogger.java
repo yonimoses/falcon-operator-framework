@@ -63,11 +63,11 @@ public class KubeEventLogger implements EventLogger {
 
     @Override
     public void createOrUpdate(String message, Type type, FalconResource resource) {
-        this.log(FalconReason.CREATE_OR_UPDATE,message,type,FalconKind.of(resource.getKind()),resource.getKind(),_FALCON);
+        this.log(FalconReason.CREATE_OR_UPDATE,"[" + resource.getSpec().getEnvironment() + "]"  + message,type,FalconKind.of(resource.getKind()),resource.getKind(),_FALCON);
     }
 
     @Override
     public void delete(String message, Type type, FalconResource resource) {
-        this.log(FalconReason.DELETE,message,type,FalconKind.of(resource.getKind()),resource.getKind(),_FALCON);
+        this.log(FalconReason.DELETE,"[" + resource.getSpec().getEnvironment() + "]"  + message,type,FalconKind.of(resource.getKind()),resource.getKind(),_FALCON);
     }
 }

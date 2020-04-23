@@ -1,13 +1,23 @@
 package com.bnhp.falcon.operator.base.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class FalconResourceSpec {
 
     private String type;
     private String name;
-    private String label;
+    private String environment;
+
+    public String getEnvironment() {
+        return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        this.environment = environment;
+    }
 
 
     public String getType(){
@@ -25,14 +35,6 @@ public abstract class FalconResourceSpec {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
     }
 
 

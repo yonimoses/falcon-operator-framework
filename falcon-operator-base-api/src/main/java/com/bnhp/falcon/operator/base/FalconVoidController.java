@@ -64,7 +64,7 @@ public abstract class FalconVoidController<T extends FalconResource> implements 
      }
 
      protected void exception(Throwable t, EventLogger.FalconReason reason,T resource) {
-        log.error("Exception :: " + t.getMessage(),t);
+        log.error("Exception on action " + reason.name() + ", message " + t.getMessage(),t);
         String message = rootCause(t);
         handler.get(resource.getMetadata().getNamespace())
                  .log(reason,message, EventLogger.Type.Error, EventLogger.FalconKind.of(resource.getKind()),resource.getKind(),_FALCON);
@@ -85,26 +85,18 @@ public abstract class FalconVoidController<T extends FalconResource> implements 
          List<HasMetadata> result = client.load(new ByteArrayInputStream(yamlString.getBytes())).get();
          log.info("Loaded yaml for applying in namespace {} ", namespace);
          // Apply Kubernetes Resources
-//      .
-         client.resourceList(result).inNamespace(namespace).createOrReplace();
-         log.info("Resource applied in namespace {}", namespace);
-
-     }
-    protected void crApply(String namespace, CustomResourceDefinition crd, String yamlString)  {
-        client.customResource(getCrdContext(crd)).create()
-         log.debug("Applying in namespace {} resource \r\n\n {} \r\n\n", namespace,yamlString);
-         List<HasMetadata> result = client.load(new ByteArrayInputStream(yamlString.getBytes())).get();
-         log.info("Loaded yaml for applying in namespace {} ", namespace);
-         // Apply Kubernetes Resources
-//      .
          client.resourceList(result).inNamespace(namespace).createOrReplace();
          log.info("Resource applied in namespace {}", namespace);
 
      }
 
-    private CustomResourceDefinitionContext getCrdContext(CustomResourceDefinition crd) {
-        return new CustomResourceDefinitionContext.Builder().withGroup(crd.getKind()).withPlural();
+    protected void crApply(String namespace, CustomResourceDefinitionContext ctx, String yamlString) throws IOException {
+        log.debug("Applying in namespace {} resource \r\n\n {} \r\n\n", namespace,yamlString);
+        client.customResource(ctx).create(namespace,yamlString);
+        log.info("Resource applied in namespace {}", namespace);
+
     }
+
 
     private String normalize(String toYaml){
          DumperOptions options = new DumperOptions();

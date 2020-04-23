@@ -2,8 +2,10 @@ package com.bnhp.falcon.operator.mongodb;
 
 //import com.bnhp.falcon.operator.base.MongoService;
 import com.bnhp.falcon.operator.base.FalconVoidController;
+import com.bnhp.falcon.operator.base.aspect.LogAround;
 import com.bnhp.falcon.operator.base.event.EventLogger;
 import com.bnhp.falcon.operator.base.event.KubeEventHandler;
+import com.bnhp.falcon.operator.base.utils.SpecUtils;
 import com.github.containersolutions.operator.api.Controller;
 import com.github.containersolutions.operator.api.ResourceController;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
@@ -28,7 +30,7 @@ public class MongoServiceController extends FalconVoidController<MongoService> i
 	@Value("${falcon.operator.destination.crd}")
 	private String destinationCRD;
 
-	private CustomResourceDefinitionContext _CONTEXT;
+//	private CustomResourceDefinitionContext _CONTEXT;
 	@Autowired
 	Environment environment;
 	private final static Logger log = LoggerFactory.getLogger(MongoServiceController.class);
@@ -41,7 +43,13 @@ public class MongoServiceController extends FalconVoidController<MongoService> i
 //		this.handler = handler;
 //     	logger = handler.get("")
 	}
-	@PostConstruct
+
+
+
+//	@PostConstruct
+//	public void postConstruct(){
+//
+//	}
 	/**
 	 * get the context and tload the shiftup.
 	 *
@@ -60,31 +68,52 @@ public class MongoServiceController extends FalconVoidController<MongoService> i
 	 */
 
 	@Override
+	@LogAround("'Deleting resource ' + #resource.getMetadata().getName()")
 	public boolean deleteResource(MongoService resource) {
 		try{
+			String name = (String)SpecUtils.toProperties(resource.getSpec().getPayload()).get("metadata.name");
+			handler.get(resource.getMetadata().getNamespace())
+					.createOrUpdate("Deleting deployed resource" + resource.getMetadata().getName(), EventLogger.Type.Normal,resource);
+			log.debug("Event created in {}  ", resource.getMetadata().getNamespace());
+			handler.get(applyToNamespace)
+					.createOrUpdate("Deleting requested resource " + name + " in ns " + applyToNamespace , EventLogger.Type.Normal,resource);
+			log.debug("Event created in {}  ", applyToNamespace);
 
-			CustomResourceDefinition definition = getCrd(destinationCRD);
-			System.out.println("definition = " + definition);
+//			CustomResourceDefinition definition = getCrd(destinationCRD);
+//			destinationCRcrDelete(applyToNamespace,resource.getSpec().getCrd().getCtx().asContext(),resource.getSpec().getPayload());
+			client.customResource(resource.getSpec().getCrd().getCtx().asContext())
+					.delete(applyToNamespace, name);
+			log.info("Resource {} deleted ", resource.getMetadata().getName());
 		}catch (Throwable t){
 			exception(t, EventLogger.FalconReason.DELETE,resource);
 		}
-
-
-		return true;
+		return false;
 	}
 
+
+
+	/**
+	 * Create the object in the NS and applied the CR of MongoUser in the namespace
+	 * as specified in the properties
+	 * @param resource
+	 * @return
+	 */
 	@Override
+	@LogAround("'Creating/Updating resource ' + #resource.getMetadata().getName()")
 	public Optional<MongoService> createOrUpdateResource(MongoService resource) {
 		try{
 
-			log.debug("createOrUpdateResource {} ", resource.getMetadata().getName());
 			handler.get(resource.getMetadata().getNamespace())
-					.createOrUpdate("Creating object ", EventLogger.Type.Normal,resource);
+					.createOrUpdate("Creating object of type " + resource.getMetadata().getName()
+							+ ", environment " + resource.getSpec().getEnvironment(), EventLogger.Type.Normal,resource);
+			log.debug("Event created in {}  ", resource.getMetadata().getNamespace());
 
-			apply(applyToNamespace,resource.getSpec().getPayload());
+			crApply(applyToNamespace,resource.getSpec().getCrd().getCtx().asContext(),resource.getSpec().getPayload());
 
 			handler.get(resource.getMetadata().getNamespace())
 					.createOrUpdate("Payload loaded "+ resource.getSpec().getPayload().substring(0,10) + "...", EventLogger.Type.Normal,resource);
+
+			log.debug("Resource {} created/modified  ", resource.getMetadata().getName());
 			return Optional.of(resource);
 
 		}catch (Throwable t){
