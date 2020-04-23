@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/falcon-operator-base-api/falcon-operator-base-api.iml" filepath="$PROJECT_DIR$/falcon-operator-base-api/falcon-operator-base-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/falcon-operator-mongodb/falcon-operator-mongodb.iml" filepath="$PROJECT_DIR$/falcon-operator-mongodb/falcon-operator-mongodb.iml" />
+      <module fileurl="file://$PROJECT_DIR$/falcon-operator-parent/falcon-operator-parent.iml" filepath="$PROJECT_DIR$/falcon-operator-parent/falcon-operator-parent.iml" />
+      <module fileurl="file://$PROJECT_DIR$/falcon-operator-sdk.iml" filepath="$PROJECT_DIR$/falcon-operator-sdk.iml" />
+    </modules>
+  </component>
+</project>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="falcon-operator-base-api" />
+        <module name="falcon-operator-mongodb" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="falcon-operator-base-api" target="1.8" />
+      <module name="falcon-operator-mongodb" target="1.8" />
+      <module name="falcon-operator-parent" target="1.8" />
+      <module name="falcon-operator-sdk" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="falcon-operator-base-api" options="-parameters" />
+      <module name="falcon-operator-mongodb" options="-parameters" />
+      <module name="falcon-operator-parent" options="-parameters" />
+    </option>
+  </component>
+</project>

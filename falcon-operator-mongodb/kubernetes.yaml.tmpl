@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bnhp-falcon-operator-ns
+---
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: mongoservices.falcon.services
+spec:
+  group: falcon.services
+  version: v1
+  scope: Namespaced
+  names:
+    plural: mongoservices
+    singular: mongoservice
+    kind: MongoService
+    shortNames:
+      - ms
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: bnhp-falcon-operator-ns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: admin-user
+    namespace: bnhp-falcon-operator-ns
+---
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: bnhp-falcon-operator-app
+  namespace: bnhp-falcon-operator-ns
+spec:
+  selector:
+    matchLabels:
+      app: bnhp-falcon-operator-app
+  replicas: 1 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: bnhp-falcon-operator-app
+    spec:
+      serviceAccountName: admin-user
+      containers:
+        - name: bnhp-falcon-operator-app
+          image: yonimoses/falcon-mongodb:_VER_
+          ports:
+            - containerPort: 8080
