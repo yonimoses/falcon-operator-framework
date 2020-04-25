@@ -26,7 +26,7 @@ public class KubeEventLogger implements EventLogger {
     @Override
     public void log(Reason reason, String message, Type type, ObjectKind objectKind, String objectName, String componentName) {
         String eventName = componentName + "." + (reason + message + type + objectKind + objectName).hashCode();
-        log.info("Creating event (if not exist) in NS {} , event {} ", namespace,eventName);
+        log.info("Creating event (if not exist) in NS {} , event {} , message {} ", namespace,eventName, message);
         Event existing = kubeClient.events().inNamespace(namespace).withName(eventName).get();
         String timestamp = Instant.now(Clock.systemUTC()).toString();
         try {

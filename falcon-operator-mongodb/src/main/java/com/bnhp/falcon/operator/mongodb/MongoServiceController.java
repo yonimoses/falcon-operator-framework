@@ -10,6 +10,7 @@ import com.github.containersolutions.operator.api.Controller;
 import com.github.containersolutions.operator.api.ResourceController;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,21 +74,27 @@ public class MongoServiceController extends FalconVoidController<MongoService> i
 		try{
 			String name = (String)SpecUtils.toProperties(resource.getSpec().getPayload()).get("metadata.name");
 			handler.get(resource.getMetadata().getNamespace())
-					.createOrUpdate("Deleting deployed resource" + resource.getMetadata().getName(), EventLogger.Type.Normal,resource);
+					.createOrUpdate("Deleting resource " + resource.getMetadata().getName(), EventLogger.Type.Normal,resource);
 			log.debug("Event created in {}  ", resource.getMetadata().getNamespace());
-			handler.get(applyToNamespace)
-					.createOrUpdate("Deleting requested resource " + name + " in ns " + applyToNamespace , EventLogger.Type.Normal,resource);
-			log.debug("Event created in {}  ", applyToNamespace);
+			//handler.get(applyToNamespace)
+			//		.createOrUpdate("Deleting requested resource " + name + " in ns " + applyToNamespace , EventLogger.Type.Normal,resource);
+			//log.debug("Event created in {}  ", applyToNamespace);
 
 //			CustomResourceDefinition definition = getCrd(destinationCRD);
 //			destinationCRcrDelete(applyToNamespace,resource.getSpec().getCrd().getCtx().asContext(),resource.getSpec().getPayload());
 			client.customResource(resource.getSpec().getCrd().getCtx().asContext())
 					.delete(applyToNamespace, name);
 			log.info("Resource {} deleted ", resource.getMetadata().getName());
-		}catch (Throwable t){
-			exception(t, EventLogger.FalconReason.DELETE,resource);
+		}catch (Throwable re){
+			if(re instanceof KubernetesClientException && ((KubernetesClientException) re).getStatus().getCode() == 404){
+				log.warn("Deleted " + ((KubernetesClientException) re).getStatus().getMessage());
+				return true;
+			}else{
+				exception(re, EventLogger.FalconReason.DELETE,resource);
+
+			}
 		}
-		return false;
+		return true;
 	}
 
 

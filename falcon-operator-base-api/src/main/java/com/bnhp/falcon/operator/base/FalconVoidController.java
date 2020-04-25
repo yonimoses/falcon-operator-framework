@@ -8,6 +8,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.slf4j.Logger;
@@ -65,10 +66,16 @@ public abstract class FalconVoidController<T extends FalconResource> implements 
 
      protected void exception(Throwable t, EventLogger.FalconReason reason,T resource) {
         log.error("Exception on action " + reason.name() + ", message " + t.getMessage(),t);
-        String message = rootCause(t);
+         String message ;
+         if(t instanceof KubernetesClientException){
+              message = ((KubernetesClientException) t).getStatus().getMessage();
+         }else{
+             message = rootCause(t);
+         }
         handler.get(resource.getMetadata().getNamespace())
                  .log(reason,message, EventLogger.Type.Error, EventLogger.FalconKind.of(resource.getKind()),resource.getKind(),_FALCON);
 
+       //  log.error("Exception will be logged in NS " + resource.getMetadata().getNamespace());
      }
 
     private String rootCause(Throwable t) {
@@ -90,7 +97,7 @@ public abstract class FalconVoidController<T extends FalconResource> implements 
 
      }
 
-    protected void crApply(String namespace, CustomResourceDefinitionContext ctx, String yamlString) throws IOException {
+    protected void crApply(String namespace, CustomResourceDefinitionContext ctx, String yamlString) throws Throwable {
         log.debug("Applying in namespace {} resource \r\n\n {} \r\n\n", namespace,yamlString);
         client.customResource(ctx).create(namespace,yamlString);
         log.info("Resource applied in namespace {}", namespace);

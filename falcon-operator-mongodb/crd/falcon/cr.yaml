@@ -22,7 +22,7 @@ spec:
     apiVersion: mongodb.com/v1
     kind: MongoDBUser
     metadata:
-      name: my-replica-set-x509-user
+      name: mongo-user-test
     spec:
       db: $external
       mongodbResourceRef:
